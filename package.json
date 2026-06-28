@@ -1,0 +1,20 @@
+{
+  "name": "recover",
+  "version": "0.0.1",
+  "private": true,
+  "description": "A Whoop-style health app built on Fitbit Air data: ingestion -> scoring -> AI assistant.",
+  "workspaces": [
+    "server",
+    "packages/*"
+  ],
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "dev": "bun run --cwd server dev",
+    "test": "bun run --cwd server test",
+    "typecheck": "bun run --cwd server typecheck"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}
