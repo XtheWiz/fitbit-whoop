@@ -39,6 +39,24 @@ export function scoreStrain(input: StrainInput): StrainResult {
   return { value: Math.min(21, value), trimp, estimated: false, zoneMinutes };
 }
 
+/**
+ * Fallback when intraday HR is unavailable (Health Connect gives only summary
+ * Active Zone Minutes). AZM weights vigorous minutes 2x; we approximate a TRIMP
+ * proxy and log-map it. Marked `estimated: true`. See docs/scoring/strain.md.
+ */
+export function strainFromAzm(azmMinutes: number): StrainResult {
+  const trimp = Math.max(0, azmMinutes) * AZM_TRIMP_PER_MINUTE;
+  const value = 21 * (Math.log(1 + TRIMP_A * trimp) / Math.log(1 + TRIMP_A * TRIMP_MAX));
+  return {
+    value: Math.min(21, value),
+    trimp,
+    estimated: true,
+    zoneMinutes: { z1: 0, z2: 0, z3: azmMinutes, z4: 0, z5: 0 },
+  };
+}
+
+export const AZM_TRIMP_PER_MINUTE = 4; // tunable: TRIMP contributed per active zone minute
+
 function addZone(z: StrainResult["zoneMinutes"], hrr: number, dt: number) {
   if (hrr < 0.6) z.z1 += dt;
   else if (hrr < 0.7) z.z2 += dt;

@@ -1,5 +1,5 @@
 import { expect, test, describe } from "bun:test";
-import { scoreRecovery, scoreStrain, scoreSleep, estimateMaxHr } from "../src/scoring/index.ts";
+import { scoreRecovery, scoreStrain, scoreSleep, estimateMaxHr, strainFromAzm } from "../src/scoring/index.ts";
 import type {
   RecoveryInput,
   SleepInput,
@@ -68,6 +68,15 @@ describe("strain", () => {
 
   test("estimateMaxHr follows Tanaka", () => {
     expect(estimateMaxHr(30)).toBeCloseTo(187, 0);
+  });
+
+  test("AZM fallback: more minutes -> more strain, marked estimated", () => {
+    const light = strainFromAzm(10);
+    const heavy = strainFromAzm(120);
+    expect(heavy.value).toBeGreaterThan(light.value);
+    expect(heavy.value).toBeLessThanOrEqual(21);
+    expect(heavy.estimated).toBe(true);
+    expect(strainFromAzm(0).value).toBe(0);
   });
 
   function mk(samples: HrSample[]): StrainInput {

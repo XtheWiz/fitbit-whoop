@@ -133,6 +133,8 @@ class _HomeScreenState extends State<HomeScreen> {
               hint: 'Cardiovascular load (Phase 4)',
             ),
             const SizedBox(height: 24),
+            _BalanceCard(recovery: _scores['recovery'], strain: _scores['strain']),
+            const SizedBox(height: 12),
             _AssistantCard(recovery: _scores['recovery']),
           ],
         ),
@@ -171,6 +173,57 @@ class _ScoreCard extends StatelessWidget {
           TextSpan(text: value, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: color)),
           TextSpan(text: ' $unit', style: const TextStyle(color: Colors.grey)),
         ])),
+      ),
+    );
+  }
+}
+
+/// Compares today's strain against a recovery-appropriate target (Whoop's
+/// strain-vs-recovery idea): higher recovery supports more strain.
+class _BalanceCard extends StatelessWidget {
+  final DailyScore? recovery;
+  final DailyScore? strain;
+  const _BalanceCard({this.recovery, this.strain});
+
+  @override
+  Widget build(BuildContext context) {
+    if (recovery == null || strain == null) return const SizedBox.shrink();
+    final target = (recovery!.value / 100) * 21; // recovery-scaled optimal strain
+    final actual = strain!.value;
+    final delta = actual - target;
+    final (label, color) = delta > 3
+        ? ('Overreaching — strain is above what your recovery supports', Colors.orange)
+        : delta < -3
+            ? ('Room to push — you\'re under your recovery-appropriate strain', _recoveryColor)
+            : ('Balanced — strain matches your recovery today', _strainColor);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Strain vs. recovery', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Today ${actual.round()}/21'),
+                Text('Target ${target.round()}/21', style: const TextStyle(color: Colors.grey)),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: (actual / 21).clamp(0.0, 1.0),
+                minHeight: 8,
+                color: color,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(label, style: TextStyle(color: color)),
+          ],
+        ),
       ),
     );
   }

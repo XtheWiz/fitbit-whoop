@@ -65,6 +65,22 @@ class ScoreDetailScreen extends StatelessWidget {
         _stat('Awake', '${h('awakeMs').toStringAsFixed(1)} h'),
       ];
     }
+    if (score.kind == 'strain') {
+      final zones = (score.result['zoneMinutes'] as Map<String, dynamic>?) ?? {};
+      final estimated = score.result['estimated'] == true;
+      double z(String k) => ((zones[k] as num?)?.toDouble() ?? 0);
+      return [
+        if (estimated)
+          const _Note('Estimated from Active Zone Minutes (no intraday HR available).'),
+        _stat('Cardio load (TRIMP)', '${((score.result['trimp'] as num?)?.toDouble() ?? 0).round()}'),
+        const Divider(height: 32),
+        _stat('Zone 1 (easy)', '${z('z1').round()} min'),
+        _stat('Zone 2', '${z('z2').round()} min'),
+        _stat('Zone 3 (moderate)', '${z('z3').round()} min'),
+        _stat('Zone 4', '${z('z4').round()} min'),
+        _stat('Zone 5 (max)', '${z('z5').round()} min'),
+      ];
+    }
     return [const _Note('No breakdown available.')];
   }
 

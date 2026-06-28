@@ -46,6 +46,19 @@ async function main() {
       mk(userId, "respiratory_rate", rr, "respiratoryRate", wake),
     );
 
+    // Intraday HR: a sample every 5 min from 07:00–23:00 (mimics Fitbit
+    // granularity so strain's >10min gap filter doesn't discard intervals),
+    // with a ~1h workout spike on alternating days.
+    const hasWorkout = i % 2 === 0;
+    for (let min = 7 * 60; min < 23 * 60; min += 5) {
+      const ts = new Date(day.getTime() + min * 60_000);
+      const inWorkout = hasWorkout && min >= 18 * 60 && min < 19 * 60;
+      const bpm = inWorkout
+        ? jitter(150, 12) // vigorous
+        : jitter(72, 10); // daily baseline activity
+      sampleRows.push(mk(userId, "heart_rate", Math.round(bpm), "bpm", ts));
+    }
+
     // Sleep: previous night ~23:00 -> ~07:00, with stage breakdown.
     const start = new Date(day.getTime() - 1 * 3600_000); // 23:00 prev day
     const segs = buildSleepSegments(start, jitter(7.5, 1) * 3600_000);
