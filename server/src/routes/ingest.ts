@@ -1,7 +1,7 @@
 import { Elysia, t } from "elysia";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { db, schema } from "../db/index.ts";
-import type { Sample } from "@recover/shared-types";
+import type { Sample, SleepSession } from "@recover/shared-types";
 
 // DB-backed ingestion + read. Upsert by (user, metric, start_ts) for cursor sync.
 export const ingestRoutes = new Elysia()
@@ -27,6 +27,25 @@ export const ingestRoutes = new Elysia()
           set: { value: schema.samples.value },
         });
       return { inserted: rows.length };
+    },
+    { body: t.Any() },
+  )
+  .post(
+    "/ingest/sleep",
+    async ({ body }) => {
+      const { userId, sessions } = body as { userId: string; sessions: SleepSession[] };
+      if (sessions.length === 0) return { inserted: 0 };
+      await db()
+        .insert(schema.sleepSessions)
+        .values(
+          sessions.map((s) => ({
+            userId,
+            startTs: new Date(s.startTs),
+            endTs: new Date(s.endTs),
+            stages: s.segments,
+          })),
+        );
+      return { inserted: sessions.length };
     },
     { body: t.Any() },
   )

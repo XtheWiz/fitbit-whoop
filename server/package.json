@@ -8,7 +8,8 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "bun run src/db/migrate.ts"
+    "db:migrate": "bun run src/db/migrate.ts",
+    "seed": "bun run src/db/seed.ts"
   },
   "dependencies": {
     "@recover/shared-types": "workspace:*",

@@ -75,3 +75,26 @@ class RecoveryResult {
         provisional: j['provisional'] as bool? ?? false,
       );
 }
+
+/// A stored daily score row from GET /scores. `inputs.result` holds the full
+/// scoring breakdown (drivers, stages) for detail views.
+class DailyScore {
+  final String day;
+  final String kind; // recovery | strain | sleep
+  final double value;
+  final Map<String, dynamic> result;
+
+  const DailyScore({
+    required this.day,
+    required this.kind,
+    required this.value,
+    required this.result,
+  });
+
+  factory DailyScore.fromJson(Map<String, dynamic> j) => DailyScore(
+        day: j['day'] as String,
+        kind: j['kind'] as String,
+        value: (j['value'] as num).toDouble(),
+        result: (j['inputs']?['result'] as Map<String, dynamic>?) ?? const {},
+      );
+}
