@@ -2,6 +2,7 @@ import type { AssistantProvider } from "./provider.ts";
 import { buildSummaryPrompt } from "./prompts/summary.ts";
 import type { AssistantContext, ChatMessage } from "./provider.ts";
 import type { SummaryWindow } from "@recover/shared-types";
+import { ZaiProvider } from "./zai_provider.ts";
 
 export type { AssistantProvider, AssistantContext, ChatMessage } from "./provider.ts";
 
@@ -28,12 +29,24 @@ class TemplateProvider implements AssistantProvider {
   }
 }
 
-/** Provider factory. Real adapters added behind this in Phase 5. */
+/** Provider factory, selected by AI_PROVIDER. Falls back to the keyless template. */
 export function makeAssistant(): AssistantProvider {
-  const provider = process.env.AI_PROVIDER ?? "local";
+  const provider = process.env.AI_PROVIDER ?? "template";
   switch (provider) {
-    // case "claude": return new ClaudeProvider(...)   // Phase 5
-    // case "gemini": return new GeminiProvider(...)   // Phase 5
+    case "zai": {
+      const apiKey = process.env.ZAI_API_KEY;
+      if (!apiKey) {
+        console.warn("AI_PROVIDER=zai but ZAI_API_KEY is unset — using template provider.");
+        return new TemplateProvider();
+      }
+      return new ZaiProvider({
+        apiKey,
+        baseUrl: process.env.ZAI_BASE_URL,
+        model: process.env.ZAI_MODEL,
+      });
+    }
+    // case "gemini": return new GeminiProvider(...)
+    // case "claude": return new ClaudeProvider(...)
     default:
       return new TemplateProvider();
   }

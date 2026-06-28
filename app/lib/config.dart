@@ -8,4 +8,7 @@ class Config {
 
   /// Dev user id until real auth lands (Phase 6+). Set with --dart-define.
   static const userId = String.fromEnvironment('USER_ID', defaultValue: '');
+
+  /// Bearer token for the deployed API guard. Empty for local dev (guard off).
+  static const apiToken = String.fromEnvironment('API_TOKEN', defaultValue: '');
 }

@@ -1,0 +1,53 @@
+# Production-ish stack for remote testing: Postgres + Bun API + Cloudflare quick
+# tunnel. Self-contained on its own Docker network — does not touch host ports
+# 80/443 or other projects on the box.
+#
+#   ZAI_API_KEY=... API_TOKEN=... docker compose -f docker-compose.prod.yml up -d --build
+#   docker compose -f docker-compose.prod.yml logs -f cloudflared   # grab the URL
+#
+# Env is read from a .env file in this directory.
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: recover
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-recover}
+      POSTGRES_DB: recover
+    volumes:
+      - recover_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recover -d recover"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgres://recover:${DB_PASSWORD:-recover}@db:5432/recover
+      AI_PROVIDER: ${AI_PROVIDER:-zai}
+      ZAI_API_KEY: ${ZAI_API_KEY:-}
+      ZAI_BASE_URL: ${ZAI_BASE_URL:-https://api.z.ai/api/paas/v4}
+      ZAI_MODEL: ${ZAI_MODEL:-glm-4.6}
+      API_TOKEN: ${API_TOKEN:-}
+    expose:
+      - "3000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://server:3000
+    depends_on:
+      - server
+
+volumes:
+  recover_pgdata:
