@@ -31,7 +31,10 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://recover:${DB_PASSWORD:-recover}@db:5432/recover
-      AI_PROVIDER: ${AI_PROVIDER:-zai}
+      AI_PROVIDER: ${AI_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_BASE_URL: ${GEMINI_BASE_URL:-https://generativelanguage.googleapis.com/v1beta/openai}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
       ZAI_API_KEY: ${ZAI_API_KEY:-}
       ZAI_BASE_URL: ${ZAI_BASE_URL:-https://api.z.ai/api/paas/v4}
       ZAI_MODEL: ${ZAI_MODEL:-glm-4.6}
