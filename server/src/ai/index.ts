@@ -3,6 +3,7 @@ import { buildSummaryPrompt } from "./prompts/summary.ts";
 import type { AssistantContext, ChatMessage } from "./provider.ts";
 import type { SummaryWindow } from "@recover/shared-types";
 import { ZaiProvider } from "./zai_provider.ts";
+import { GeminiProvider } from "./gemini_provider.ts";
 
 export type { AssistantProvider, AssistantContext, ChatMessage } from "./provider.ts";
 
@@ -45,7 +46,18 @@ export function makeAssistant(): AssistantProvider {
         model: process.env.ZAI_MODEL,
       });
     }
-    // case "gemini": return new GeminiProvider(...)
+    case "gemini": {
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        console.warn("AI_PROVIDER=gemini but GEMINI_API_KEY is unset — using template provider.");
+        return new TemplateProvider();
+      }
+      return new GeminiProvider({
+        apiKey,
+        baseUrl: process.env.GEMINI_BASE_URL,
+        model: process.env.GEMINI_MODEL,
+      });
+    }
     // case "claude": return new ClaudeProvider(...)
     default:
       return new TemplateProvider();

@@ -1,5 +1,6 @@
 import { expect, test, describe } from "bun:test";
 import { ZaiProvider } from "../src/ai/zai_provider.ts";
+import { GeminiProvider } from "../src/ai/gemini_provider.ts";
 import { buildContext, type ScoreRow } from "../src/ai/context.ts";
 import type { AssistantContext } from "../src/ai/provider.ts";
 
@@ -42,6 +43,28 @@ describe("ZaiProvider", () => {
 
   test("throws on missing apiKey", () => {
     expect(() => new ZaiProvider({ apiKey: "" })).toThrow();
+  });
+
+  test("GeminiProvider hits the OpenAI-compatible endpoint with its default model", async () => {
+    const cap: { req?: Request; body?: any } = {};
+    const p = new GeminiProvider({ apiKey: "g-key", fetchFn: fakeFetch(cap, "Solid recovery.") });
+    const text = await p.generateSummary(ctx, "morning");
+    expect(text).toBe("Solid recovery.");
+    expect(p.name).toBe("gemini");
+    expect(cap.req!.url).toBe("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+    expect(cap.req!.headers.get("authorization")).toBe("Bearer g-key");
+    expect(cap.body.model).toBe("gemini-2.5-flash");
+  });
+
+  test("GeminiProvider posts to the Gemini OpenAI endpoint with its default model", async () => {
+    const cap: { req?: Request; body?: any } = {};
+    const p = new GeminiProvider({ apiKey: "gkey", fetchFn: fakeFetch(cap, "Good recovery.") });
+    const text = await p.generateSummary(ctx, "morning");
+    expect(text).toBe("Good recovery.");
+    expect(p.name).toBe("gemini");
+    expect(cap.req!.url).toBe("https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+    expect(cap.req!.headers.get("authorization")).toBe("Bearer gkey");
+    expect(cap.body.model).toBe("gemini-2.5-flash");
   });
 
   test("throws on non-OK response", async () => {
