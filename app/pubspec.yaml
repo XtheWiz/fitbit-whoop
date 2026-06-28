@@ -39,6 +39,7 @@ dependencies:
   health: ^13.1.1
   # Typed HTTP client to the Bun/Elysia backend.
   http: ^1.5.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
